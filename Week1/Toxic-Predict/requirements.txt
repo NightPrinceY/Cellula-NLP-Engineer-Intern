@@ -1,0 +1,7 @@
+os
+pickle
+numpy
+pandas
+tensorflow 
+scikit-learn
+matplotlib
