@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internship Week 2 Report - Cellula AI</title>
+    <link rel="noopener" href="https://github.com/NightPrinceY/https-huggingface.co-spaces-NightPrince-Dual-Stage-Toxic-Moderation" rel="external" title="Week 2 on GitHub">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; color: #222; line-height: 1.7; }
+        h1, h2, h3 { color: #2a4d69; }
+        h1 { font-size: 2.4em; margin-bottom: 0.3em; }
+        h2 { font-size: 1.6em; margin-top: 1.8em; }
+        h3 { font-size: 1.2em; margin-top: 1.4em; }
+        .author { font-size: 1.1em; margin-bottom: 2em; }
+        ul, ol { margin-left: 1.4em; }
+        .table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+        .table th, .table td { border: 1px solid #bbb; padding: 8px 12px; text-align: left; }
+        .table th { background: #e3eaf2; }
+        pre.code-block {
+            background: #f7f7f7; border: 1px solid #ccc;
+            padding: 12px; font-family: Consolas, monospace;
+            font-size: 0.95em; white-space: pre-wrap;
+        }
+        .folder-structure {
+            background: #f7f7f7; border: 1px solid #ccc;
+            padding: 10px; font-family: Consolas, monospace;
+            font-size: 0.95em; white-space: pre-wrap;
+        }
+        .footer { margin-top: 2em; font-size: 1em; color: #555; }
+        .highlight { background: #eaf6ff; padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Internship Report: Week 2</h1>
+    <div class="author">
+        <strong>Author:</strong> Yahya Alnwsany<br>
+        <strong>Period:</strong> Internship Week 2<br>
+        <strong>Company:</strong> Cellula AI<br>
+        <strong>Department:</strong> NLP Engineer Internship<br>
+        <strong>Supervisor:</strong> Jannah Mahmoud<br>
+        <strong>Week 2 Repo:</strong>
+        <a href="https://github.com/NightPrinceY/https-huggingface.co-spaces-NightPrince-Dual-Stage-Toxic-Moderation" target="_blank" rel="noopener">
+            Week 2 Repo
+        </a>
+        <br>
+        <strong>Live Demo:</strong>
+        <a href="https://huggingface.co/spaces/NightPrince/Dual-Stage-Toxic-Moderation" target="_blank" rel="noopener">
+            Hugging Face Space
+        </a>
+    </div>
+
+    <h2>Project Context</h2>
+    <p>
+        <strong>This report documents the second phase of the internship project:</strong> <em>Safe and Responsible Multi-Modal Toxic Content Moderation</em>.<br>
+        Building on Week 1's text moderation foundation, this week focused on deploying a dual-stage, multi-modal moderation system as a production-ready Streamlit web app. The system now supports both text and image inputs, leverages state-of-the-art vision-language and transformer models, and implements a robust, research-driven moderation workflow.
+    </p>
+
+    <h2>Executive Summary</h2>
+    <p>During Week 2 at Cellula AI, I transformed the research pipeline into a real-world, interactive moderation tool. The app integrates a hard safety filter (Llama Guard), a fine-tuned DistilBERT+LoRA classifier, and BLIP for image captioning. I addressed class imbalance, improved model robustness, and delivered a user-friendly, dual-stage moderation workflow. The result is a scalable, extensible, and transparent system ready for real-world deployment and further research.</p>
+
+    <h2>1. Dual-Stage Moderation Pipeline</h2>
+    <h3>1.1 Stage 1: Hard Filter (Llama Guard)</h3>
+    <ul>
+        <li><strong>API:</strong> Llama Guard (Meta, via OpenRouter API)</li>
+        <li><strong>Purpose:</strong> Instantly blocks content that is legally or ethically unsafe (e.g., violence, hate, sexual exploitation).</li>
+        <li><strong>Prompt:</strong> Strict system prompt ensures only 'safe' or 'unsafe' is returned.</li>
+        <li><strong>Logic:</strong> If unsafe, user is notified and moderation stops. If safe, content proceeds to soft classifier.</li>
+    </ul>
+
+    <h3>1.2 Stage 2: Soft Classifier (DistilBERT+LoRA)</h3>
+    <ul>
+        <li><strong>Model:</strong> DistilBERT (transformer) fine-tuned with PEFT-LoRA for 9-class toxic content classification.</li>
+        <li><strong>Categories:</strong> Safe, Violent Crimes, Elections, Sex-Related Crimes, Unsafe, Non-Violent Crimes, Child Sexual Exploitation, Unknown S-Type, Suicide & Self-Harm.</li>
+        <li><strong>Output:</strong> Displays predicted category and class probabilities for transparency.</li>
+        <li><strong>Improvements:</strong> Addressed class imbalance with resampling/augmentation (SMOTE, class weights, oversampling).</li>
+    </ul>
+
+    <h3>1.3 Image Support (BLIP)</h3>
+    <ul>
+        <li><strong>Model:</strong> BLIP (Bootstrapped Language-Image Pre-training, Salesforce)</li>
+        <li><strong>Purpose:</strong> Generates captions for uploaded images, enabling moderation of visual content via the same pipeline.</li>
+        <li><strong>Integration:</strong> Caption is appended to text input and passed through both moderation stages.</li>
+    </ul>
+
+    <h2>2. Streamlit App Deployment</h2>
+    <ul>
+        <li><strong>Interface:</strong> Accepts raw text and/or image uploads. Displays moderation results with clear feedback and probabilities.</li>
+        <li><strong>Workflow:</strong> User input → BLIP caption (if image) → Llama Guard filter → DistilBERT+LoRA classifier (if safe).</li>
+        <li><strong>Reproducibility:</strong> All code, model weights, and requirements are versioned and documented.</li>
+        <li><strong>Live Demo:</strong> [Hugging Face Space](https://huggingface.co/spaces/NightPrince/Dual-Stage-Toxic-Moderation)</li>
+    </ul>
+
+    <h2>3. Model Selection & Class Imbalance</h2>
+    <ul>
+        <li>Compared PEFT-LoRA DistilBERT and baseline CNN/LSTM on validation set (accuracy, F1-score, confusion matrix).</li>
+        <li>Analyzed class distribution and addressed imbalance with SMOTE, class weights, and oversampling.</li>
+        <li>Retrained and selected the best model for deployment in the app.</li>
+    </ul>
+
+    <h2>4. Reporting & Documentation</h2>
+    <ul>
+        <li>Recorded results of class imbalance experiments and model selection.</li>
+        <li>Documented Llama Guard API and BLIP integration.</li>
+        <li>Summarized dual-stage logic and provided code documentation for reproducibility.</li>
+        <li>All code and artifacts are available on <a href="https://github.com/NightPrinceY/https-huggingface.co-spaces-NightPrince-Dual-Stage-Toxic-Moderation" target="_blank">GitHub</a> and <a href="https://huggingface.co/spaces/NightPrince/Dual-Stage-Toxic-Moderation" target="_blank">Hugging Face</a>.</li>
+    </ul>
+
+    <h2>5. Folder Structure</h2>
+    <div class="folder-structure">
+Week2/
+├── app_streamlit.py            # Main Streamlit app (UI, imports modular pipeline)
+├── pipeline/                   # Modular pipeline for moderation logic
+│   ├── __init__.py             # Pipeline package init
+│   ├── blip_caption.py         # BLIP image captioning module
+│   ├── llama_guard.py          # Llama Guard API filter module
+│   └── toxic_classifier.py     # DistilBERT+LoRA classifier module
+├── requirements.txt            # Python dependencies (transformers, streamlit, peft, torch, etc.)
+├── .env.example                # Example environment file for API keys
+├── README.md                   # Project overview, setup, and usage
+├── internship_week2_report.html # This report (detailed, professional)
+    </div>
+
+    <h2>6. Key Code Snippets & Modular Pipeline</h2>
+    <p>
+        <strong>New in Week 2:</strong> The moderation logic is now fully modularized for clarity, maintainability, and extensibility. Each stage of the pipeline is encapsulated in its own Python module under <span class="highlight">pipeline/</span>:
+        <ul>
+            <li><span class="highlight">blip_caption.py</span>: Handles BLIP image captioning.</li>
+            <li><span class="highlight">llama_guard.py</span>: Calls the Llama Guard API for hard filtering.</li>
+            <li><span class="highlight">toxic_classifier.py</span>: Loads and runs the DistilBERT+LoRA classifier.</li>
+        </ul>
+        The main app (<span class="highlight">app_streamlit.py</span>) imports and orchestrates these modules, providing a clean, professional codebase ready for production or research extension.
+    </p>
+    <h3>6.1 Llama Guard API Call (<span class="highlight">pipeline/llama_guard.py</span>)</h3>
+    <pre class="code-block">
+def llama_guard_filter(text):
+    headers = {
+        "Authorization": "Bearer ...",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": "meta-llama/llama-guard-3-8b",
+        "max_tokens": 25,
+        "messages": [
+            {"role": "system", "content": "You are a strict safety classifier. Respond with only one word: either 'safe' or 'unsafe'. Do not add punctuation, explanation, or formatting."},
+            {"role": "user", "content": text}
+        ]
+    }
+    response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+    ...
+    </pre>
+    <h3>6.2 BLIP Captioning (<span class="highlight">pipeline/blip_caption.py</span>)</h3>
+    <pre class="code-block">
+def caption_image(img):
+    processor, model = load_caption_model()
+    inputs = processor(images=img, return_tensors="pt")
+    pixel_values = inputs["pixel_values"]
+    out = model.generate(pixel_values=pixel_values)
+    caption = processor.decode(out[0], skip_special_tokens=True)
+    return caption
+    </pre>
+    <h3>6.3 DistilBERT+LoRA Classifier (<span class="highlight">pipeline/toxic_classifier.py</span>)</h3>
+    <pre class="code-block">
+def classify_toxicity(text_input, caption):
+    pipe = load_toxic_classifier()
+    full_input = text_input + " [SEP] " + caption
+    preds = pipe(full_input)
+    ...
+    </pre>
+
+    <h2>7. Results, User Experience & Improvements</h2>
+    <ul>
+        <li><strong>Modular Pipeline:</strong> All moderation logic is now split into clear, reusable modules for each stage.</li>
+        <li><strong>Professional UI:</strong> Streamlit app provides instant feedback, clear error handling, and supports both text and image moderation.</li>
+        <li><strong>Reproducibility:</strong> All code, model weights, and requirements are versioned and documented for easy setup and extension.</li>
+        <li><strong>Documentation:</strong> README and this report have been expanded to match Week 1's quality, with full project context, setup, model details, and results.</li>
+        <li><strong>Extensibility:</strong> The modular structure allows for easy addition of new moderation stages, models, or features (e.g., logging, authentication, advanced analytics).</li>
+    </ul>
+    <ul>
+        <li>App provides instant feedback on unsafe content (Stage 1) and detailed category probabilities (Stage 2).</li>
+        <li>Supports both text and image moderation, with clear UI and error handling.</li>
+        <li>All results, code, and models are reproducible and open source.</li>
+    </ul>
+
+    <h2>8. Next Steps</h2>
+    <ul>
+        <li>Expand to multi-language support and more nuanced categories.</li>
+        <li>Integrate user authentication and moderation logs.</li>
+        <li>Deploy as a cloud service with REST API.</li>
+        <li>Continue benchmarking and model improvements.</li>
+    </ul>
+
+    <h2>Appendix: References & Resources</h2>
+    <ul>
+        <li><a href="https://huggingface.co/spaces/NightPrince/Dual-Stage-Toxic-Moderation" target="_blank">Hugging Face Space (Live Demo)</a></li>
+        <li><a href="https://github.com/NightPrinceY/https-huggingface.co-spaces-NightPrince-Dual-Stage-Toxic-Moderation" target="_blank">GitHub Repo</a></li>
+        <li><a href="../Week1/Toxic-Predict/README.md" target="_blank">Week 1 Documentation</a></li>
+        <li><a href="https://llama.meta.com/llama-guard/" target="_blank">Llama Guard (Meta)</a></li>
+        <li><a href="https://huggingface.co/NightPrince/peft-distilbert-toxic-classifier" target="_blank">DistilBERT+LoRA (Hugging Face)</a></li>
+        <li><a href="https://github.com/salesforce/BLIP" target="_blank">BLIP (Salesforce)</a></li>
+        <li><a href="https://nightprincey.github.io/Portfolio/" target="_blank">Author Portfolio</a></li>
+    </ul>
+
+    <div class="footer">
+        Prepared by:<br>
+        Yahya Alnwsany<br>
+        Cellula AI Intern – Week 2<br>
+        <a href="https://nightprincey.github.io/Portfolio/" target="_blank" rel="noopener">My Portfolio</a><br>
+        <a href="https://github.com/NightPrinceY/https-huggingface.co-spaces-NightPrince-Dual-Stage-Toxic-Moderation" target="_blank" rel="noopener">Week 2 on GitHub</a>
+    </div>
+</body>
+</html>

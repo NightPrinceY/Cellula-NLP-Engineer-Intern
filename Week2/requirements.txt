@@ -1,0 +1,11 @@
+
+# Core
+streamlit[pillow]
+transformers>=4.26.0
+torch
+peft>=0.3.0
+pillow
+requests
+python-dotenv
+torchvision
+
