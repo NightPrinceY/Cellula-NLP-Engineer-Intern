@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internship Week 1 Report - Cellula AI</title>
+    <!-- Week 1 GitHub Link -->
+    <link rel="noopener" href="https://github.com/NightPrinceY/Cellula-NLP-Engineer-Intern/tree/main/Week1/" rel="external" title="Week 1 on GitHub">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; color: #222; line-height: 1.7; }
+        h1, h2, h3 { color: #2a4d69; }
+        h1 { font-size: 2.4em; margin-bottom: 0.3em; }
+        h2 { font-size: 1.6em; margin-top: 1.8em; }
+        h3 { font-size: 1.2em; margin-top: 1.4em; }
+        .author { font-size: 1.1em; margin-bottom: 2em; }
+        ul, ol { margin-left: 1.4em; }
+        .table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+        .table th, .table td { border: 1px solid #bbb; padding: 8px 12px; text-align: left; }
+        .table th { background: #e3eaf2; }
+        pre.code-block {
+            background: #f7f7f7; border: 1px solid #ccc;
+            padding: 12px; font-family: Consolas, monospace;
+            font-size: 0.95em; white-space: pre-wrap;
+        }
+        .folder-structure {
+            background: #f7f7f7; border: 1px solid #ccc;
+            padding: 10px; font-family: Consolas, monospace;
+            font-size: 0.95em; white-space: pre-wrap;
+        }
+        .footer { margin-top: 2em; font-size: 1em; color: #555; }
+    </style>
+</head>
+<body>
+    <h1>Internship Report: Week 1</h1>
+    <div class="author">
+        <strong>Author:</strong> Yahya Alnwsany<br>
+        <strong>Period:</strong> Internship Week 1<br>
+        <strong>Company:</strong> Cellula AI<br>
+        <strong>Department:</strong> NLP Engineer Internship<br>
+        <strong>Supervisor:</strong> Jannah Mahmoud<br>
+        <strong>Week 1 Repo:</strong>
+        <a href="https://github.com/NightPrinceY/Cellula-NLP-Engineer-Intern/tree/main/Week1/" target="_blank" rel="noopener">
+            Week 1 Repo
+        </a>
+
+    <h2>Project Context</h2>
+    <p>
+        <strong>This report documents the first phase of the internship project:</strong> <em>Safe and Responsible Multi-Modal Toxic Content Moderation</em>.<br>
+        The overall goal is to build a dual-stage, multi-modal moderation system for both text and images, combining state-of-the-art NLP and vision models. This week’s work lays the foundation for the text moderation pipeline, which will be extended and integrated into the full system in subsequent weeks.
+    </p>
+
+    <h2>Executive Summary</h2>
+    <p>During my first week at Cellula AI, I initiated the development of a robust toxic comment classification pipeline. The main goal was to explore the performance trade-offs between a classical deep learning architecture and a transformer-based model utilizing advanced fine-tuning methods. Key accomplishments included full data preprocessing, designing and training two models (custom LSTM-based and DistilBERT + LoRA), and generating comparative metrics to guide deployment decisions. This foundational week ensures scalability, reproducibility, and future extensibility. <br><br>
+    <strong>Note:</strong> This is the first part of a larger project that will include a hard moderation filter (Llama Guard), image captioning and moderation (BLIP), and a Streamlit-based deployment in the coming weeks.
+    </p>
+
+    <h2>1. Data Pipeline Overview</h2>
+    <h3>1.1 Data Source and Loading</h3>
+    <ul>
+        <li><strong>Dataset:</strong> <code>data/cellula-toxic.csv</code> – includes multi-class labeled user comments with toxicity annotations.</li>
+        <li><strong>Tool:</strong> <code>pandas</code> was used to load and inspect the dataset.</li>
+    </ul>
+
+    <h3>1.2 Cleaning and Normalization</h3>
+    <ul>
+        <li>Lowercased all comments for consistency.</li>
+        <li>Removed emojis, special characters, and HTML entities.</li>
+        <li>Applied whitespace normalization.</li>
+        <li>Optional: stopword removal and lemmatization (NLTK, spaCy).</li>
+    </ul>
+
+    <h3>1.3 Tokenization</h3>
+    <p>A custom tokenizer was created using either HuggingFace's `Tokenizer` or Keras tokenizer. The tokenizer was fitted on the cleaned corpus to map words into integer sequences, crucial for deep learning models.</p>
+
+    <h3>1.4 Label Encoding</h3>
+    <p>Multi-class labels were mapped using <code>data/label_map.json</code>, ensuring consistency during training and evaluation.</p>
+
+    <h3>1.5 Dataset Splitting</h3>
+    <ul>
+        <li>Stratified split into train, validation, and test sets (60/20/20).</li>
+        <li>Maintained proportional representation of classes.</li>
+        <li>Used <code>train_test_split</code> from sklearn with <code>stratify=y</code>.</li>
+    </ul>
+
+    <h3>1.6 Saved Artifacts</h3>
+    <ul>
+        <li><code>data/cleaned.csv</code>, <code>tokenizer.pkl</code>, <code>label_map.json</code></li>
+        <li><code>train.csv</code>, <code>eval.csv</code>, <code>test.csv</code></li>
+    </ul>
+
+    <h2>2. Modeling Approaches</h2>
+    <h3>2.1 Deep Learning Baseline – Why LSTM?</h3>
+    <p>
+        <strong>Long Short-Term Memory (LSTM) networks</strong> are a type of recurrent neural network (RNN) designed to capture long-range dependencies in sequential data. In the context of toxic comment classification, LSTMs are well-suited because they can model the order and context of words, which is crucial for understanding nuanced language and detecting subtle forms of toxicity.<br><br>
+        <strong>Why use LSTM?</strong>
+        <ul>
+            <li><strong>Context Awareness:</strong> LSTMs can remember information over long sequences, making them effective for text where context matters.</li>
+            <li><strong>Bidirectionality:</strong> Using a Bidirectional LSTM allows the model to consider both past and future context in a sentence, improving classification accuracy.</li>
+            <li><strong>Efficiency:</strong> LSTMs are less computationally intensive than transformers, making them suitable for rapid prototyping and deployment on resource-constrained systems.</li>
+            <li><strong>Interpretability:</strong> The architecture is relatively simple and easy to debug compared to more complex models.</li>
+        </ul>
+    </p>
+    <pre class="code-block">
+Embedding(vocab_size, 128, input_length=max_len),
+Bidirectional(LSTM(64, return_sequences=True)),
+GlobalMaxPooling1D(),
+Dropout(0.3),
+Dense(64, activation='relu'),
+Dropout(0.3),
+Dense(num_classes, activation='softmax')
+    </pre>
+    <p>
+        <strong>Explanation:</strong> The embedding layer converts words to dense vectors. The Bidirectional LSTM captures context from both directions. GlobalMaxPooling1D reduces the sequence to a fixed-length vector. Dense and Dropout layers add non-linearity and regularization, and the final Dense layer outputs class probabilities.
+    </p>
+    <h3>Performance:</h3>
+    <ul>
+        <li>Accuracy: <strong>94%</strong></li>
+        <li>Macro F1: <strong>82%</strong>, Weighted F1: <strong>94%</strong></li>
+    </ul>
+    <pre class="code-block">
+          precision    recall  f1-score   support
+2       1.00        0.91      0.95       11
+3       0.94        0.98      0.96       45
+6       0.33        0.25      0.29        4
+7       0.97        1.00      0.99       35
+8       1.00        0.86      0.92        7
+Accuracy: 0.94 (n=102)
+    </pre>
+    <h3>2.2 Transformer-Based Model – DistilBERT with PEFT (LoRA)</h3>
+    <p>
+        <strong>Transformers</strong> have revolutionized NLP by enabling models to learn contextual relationships between words in a sentence using self-attention mechanisms. <strong>DistilBERT</strong> is a distilled (compressed) version of BERT, offering nearly the same performance as BERT but with fewer parameters and faster inference.<br><br>
+        <strong>Parameter-Efficient Fine-Tuning (PEFT)</strong> is a family of techniques that allow large pre-trained models to be adapted to new tasks by training only a small subset of parameters, rather than the entire model. This is especially important for deploying transformer models in production, where memory and compute resources may be limited.
+    </p>
+    <h4>What is LoRA?</h4>
+    <p>
+        <strong>LoRA (Low-Rank Adaptation)</strong> is a PEFT method that injects small, trainable low-rank matrices into each layer of a transformer model. Instead of updating all the weights in the model, LoRA only updates these additional matrices, drastically reducing the number of trainable parameters.<br><br>
+        <strong>Benefits of LoRA:</strong>
+        <ul>
+            <li><strong>Efficiency:</strong> Requires less memory and compute, making fine-tuning feasible on modest hardware.</li>
+            <li><strong>Speed:</strong> Faster training and inference compared to full fine-tuning.</li>
+            <li><strong>Performance:</strong> Achieves results comparable to full fine-tuning in many tasks.</li>
+            <li><strong>Modularity:</strong> LoRA adapters can be swapped in and out, allowing for easy experimentation and deployment.</li>
+        </ul>
+        <strong>Why use PEFT/LoRA in this project?</strong> The toxic comment classification task benefits from the language understanding of large models like DistilBERT, but full fine-tuning is resource-intensive. LoRA enables efficient adaptation of DistilBERT to our specific dataset, making it practical to deploy high-performing models even with limited resources.
+    </p>
+    <ul>
+        <li><strong>Base Model:</strong> distilbert-base-uncased</li>
+        <li><strong>Fine-Tuning Method:</strong> LoRA adapters via PEFT</li>
+        <li><strong>Epochs:</strong> 3</li>
+        <li><strong>Learning Rate:</strong> 5e-5</li>
+        <li><strong>Optimizer:</strong> AdamW</li>
+    </ul>
+    <pre class="code-block">
+"epoch": 3.0,
+"eval_loss": 0.4127,
+"eval_runtime": 1.82,
+"eval_samples_per_second": 167.0,
+"eval_steps_per_second": 10.44
+    </pre>
+    <h4>Artifacts Produced:</h4>
+    <ul>
+        <li>adapter_model.safetensors (LoRA adapter weights)</li>
+        <li>all_results.json (training and evaluation metrics)</li>
+        <li>training_args.bin (training configuration)</li>
+    </ul>
+
+    <h2>3. Comparative Summary</h2>
+    <table class="table">
+        <tr>
+            <th>Aspect</th>
+            <th>LSTM Baseline</th>
+            <th>DistilBERT + LoRA</th>
+        </tr>
+        <tr>
+            <td>Performance</td>
+            <td>Strong (94% Acc)</td>
+            <td>Strong (Eval Loss: 0.41)</td>
+        </tr>
+        <tr>
+            <td>Training Cost</td>
+            <td>Low</td>
+            <td>Medium</td>
+        </tr>
+        <tr>
+            <td>Inference Speed</td>
+            <td>High</td>
+            <td>Medium</td>
+        </tr>
+        <tr>
+            <td>Flexibility</td>
+            <td>Good for Edge</td>
+            <td>Better for NLP Stack</td>
+        </tr>
+        <tr>
+            <td>Next Steps</td>
+            <td>Hyperparam Tuning</td>
+            <td>RoBERTa / DeBERTa PEFT</td>
+        </tr>
+    </table>
+
+    <h2>4. Next Week Objectives</h2>
+    <ul>
+        <li>Hyperparameter grid search for both models</li>
+        <li>Model quantization for deployment</li>
+        <li>Inference pipeline and REST API setup</li>
+        <li>Try RoBERTa or ALBERT under PEFT</li>
+        <li>Build a Streamlit dashboard for live demo</li>
+    </ul>
+
+    <h2>Appendix: Folder Layout</h2>
+    <div class="folder-structure">
+.\
+├── data/
+│   ├── cellula-toxic.csv
+│   ├── cleaned.csv
+│   ├── tokenizer.json
+│   ├── label_map.json
+│   ├── train.csv / eval.csv / test.csv
+├── models/
+│   ├── toxic_classifier.keras
+│   ├── toxic_classifier_v3.keras
+│   └── <a href="https://huggingface.co/nightprincey/lstm-toxic-cellula" target="_blank" rel="noopener">LSTM Model (Hugging Face)</a>
+│   └── <a href="https://github.com/NightPrinceY/Cellula-Toxic-Predict/tree/main/models" target="_blank" rel="noopener">LSTM Model (GitHub)</a>
+├── src/
+│   ├── preprocess.py
+│   ├── tokenize_and_split.py
+├── FineTuned-DB-ToxicClassifier/
+│   ├── adapter_model.safetensors
+│   ├── all_results.json
+│   ├── training_args.bin
+│   └── <a href="https://huggingface.co/nightprincey/distilbert-toxic-lora-cellula" target="_blank" rel="noopener">DistilBERT+LoRA (Hugging Face)</a>
+│   └── <a href="https://github.com/NightPrinceY/Cellula-Toxic-Predict/tree/main/FineTuned-DB-ToxicClassifier" target="_blank" rel="noopener">DistilBERT+LoRA (GitHub)</a>
+    </div>
+
+    <div class="footer">
+        Prepared by:<br>
+        Yahya Alnwsany<br>
+        Cellula AI Intern – Week 1<br>
+        <a href="https://nightprincey.github.io/Portfolio/" target="_blank" rel="noopener">My Portfolio</a><br>
+        <a href="https://github.com/NightPrinceY/Cellula-NLP-Engineer-Intern/tree/main/Week1/" target="_blank" rel="noopener">Week 1 on GitHub</a>
+    </div>
+</body>
+</html>
