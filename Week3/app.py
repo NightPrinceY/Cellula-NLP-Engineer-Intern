@@ -1,12 +1,14 @@
 import streamlit as st
-from pipeline import CodeGenPipeline
+from pipeline.pipeline import CodeGenPipeline
 
 st.set_page_config(page_title="CodeGenBot", page_icon="🤖")
 st.title("💻 CodeGenBot")
 
 # Initialize pipeline only once (cache in session state)
 if "pipeline" not in st.session_state:
-    st.session_state.pipeline = CodeGenPipeline("hf://datasets/openai/openai_humaneval/openai_humaneval/test-00000-of-00001.parquet")
+    st.session_state.pipeline = CodeGenPipeline(
+        "hf://datasets/openai/openai_humaneval/openai_humaneval/test-00000-of-00001.parquet"
+    )
 
 # Memory for chat messages
 if "messages" not in st.session_state:
@@ -15,7 +17,7 @@ if "messages" not in st.session_state:
 # Display previous messages
 for msg in st.session_state.messages:
     if msg["role"] == "assistant":
-        st.chat_message("assistant").code(msg["content"], language="python")
+        st.chat_message("assistant").markdown(msg["content"])
     else:
         st.chat_message(msg["role"]).write(msg["content"])
 
