@@ -1,5 +1,5 @@
 import streamlit as st
-from pipeline.pipeline import CodeGenPipeline
+from pipeline import CodeGenPipeline
 
 st.set_page_config(page_title="CodeGenBot", page_icon="🤖")
 st.title("💻 CodeGenBot")
