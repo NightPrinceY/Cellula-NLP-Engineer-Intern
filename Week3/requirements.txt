@@ -1,0 +1,5 @@
+pandas
+sentence-transformers
+chromadb
+huggingface_hub
+pyarrow 
